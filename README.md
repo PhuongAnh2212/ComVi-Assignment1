@@ -3,16 +3,16 @@
 ### Task 1: Calibrate camera from laptop 
 
 === Camera Calibration Results ===
-Camera Matrix:
+**Camera Matrix:**
  [[1.05391026e+03 0.00000000e+00 6.01104007e+02]
  [0.00000000e+00 1.05628389e+03 3.56856326e+02]
  [0.00000000e+00 0.00000000e+00 1.00000000e+00]]
 
-Distortion Coefficients:
+**Distortion Coefficients:** //
  [[-2.68533508e-01  3.13394797e+00 -1.39096158e-03 -5.74958820e-03
   -7.72310401e+00]]
 
-Rotation Vectors:
+**Rotation Vectors:**
  (array([[-0.14028005],
        [-0.03679383],
        [ 1.56848498]]), array([[-0.08039046],
@@ -35,7 +35,7 @@ Rotation Vectors:
        [-0.06388925],
        [ 1.57621612]]))
 
-Translation Vectors:
+**Translation Vectors:**
  (array([[ 1.30911554],
        [-1.35318214],
        [20.90071781]]), array([[ 1.50587037],
