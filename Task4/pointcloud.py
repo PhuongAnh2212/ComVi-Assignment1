@@ -17,7 +17,7 @@ def create_point_cloud(depth_path, color_path, fx, fy, cx, cy, depth_scale=1000.
     for v in range(height):
         for u in range(width):
             depth = depth_image[v, u] / depth_scale 
-            if depth > 0:
+            if (depth > 0 and depth < 7):
                 x = (u - cx) * depth / fx
                 y = (v - cy) * depth / fy
                 z = depth
@@ -49,3 +49,9 @@ o3d.visualization.draw_geometries([point_cloud])
 
 # o3d.io.write_point_cloud("point_cloud.pcd", point_cloud)
 # print("Point cloud saved as 'point_cloud.pcd'.")
+
+# 1 queue = 2 stacks
+# array is nothing but a queue
+
+# set is biggest -> list is subset of set -> array is subset of list
+# list is an ADT
