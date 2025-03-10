@@ -51,8 +51,8 @@ if timestamps:  # Only create plot if there were frames processed
     plt.tight_layout()
     
     # Save the plot
-    plt.savefig('pupil_detection_success_plot.png', dpi=300, bbox_inches='tight')
-    print(f"Plot saved as 'pupil_detection_success_plot.png'")
+    plt.savefig('pupil_detection_log.png', dpi=300, bbox_inches='tight')
+    print(f"Plot saved as pupil_detection_log.png'")
     print(f"Final success rate: {final_success_rate:.1f}%")
 else:
     print("No data found in CSV for plotting")
