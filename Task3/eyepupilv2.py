@@ -3,6 +3,7 @@ import numpy as np
 import time
 import csv
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 # Initialize background subtractor
 bg_subtractor = cv2.createBackgroundSubtractorMOG2()
@@ -19,10 +20,15 @@ def non_max_suppression_fast(image, kernel_size=3):
     nms_result = np.where(image == dilated, image, 0)
     return nms_result
 
+# Create or open CSV file with headers
 csv_file = 'pupil_detection_log.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(['Timestamp', 'Number of Circles Detected'])
+    writer.writerow(['Timestamp', 'Detection Status', 'Number of Circles'])
+
+# Lists to store detection results
+timestamps = []
+detection_status = []  # 1 for detection, 0 for miss
 
 while True:
     start_time = time.time()  # Start time for FPS calculation
@@ -51,18 +57,25 @@ while True:
     circles = cv2.HoughCircles(edges_nms, cv2.HOUGH_GRADIENT, dp=2.0, minDist=50, 
                              param1=10, param2=60, minRadius=10, maxRadius=20)
 
+    timestamp = datetime.now()
+    timestamps.append(timestamp)
+    
     if circles is not None:
         circles = np.uint16(np.around(circles))
-        # Log detection time to CSV
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         num_circles = len(circles[0])
+        detection_status.append(1)  # Success
         with open(csv_file, 'a', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow([timestamp, num_circles])
+            writer.writerow([timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'), 'Detected', num_circles])
         
         for i in circles[0, :]:
             cv2.circle(frame, (i[0], i[1]), i[2], (0, 255, 0), 2)  # Outer circle
             cv2.circle(frame, (i[0], i[1]), 2, (0, 0, 255), 3)  # Center point
+    else:
+        detection_status.append(0)  # Miss
+        with open(csv_file, 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([timestamp.strftime('%Y-%m-%d %H:%M:%S.%f'), 'Missed', 0])
 
     # FPS calculation
     fps = 1.0 / (time.time() - start_time)
@@ -85,5 +98,43 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+# Calculate cumulative success percentage and plot
+if timestamps:  # Only create plot if there were frames processed
+    # Calculate running success percentage
+    cumulative_detections = np.cumsum(detection_status)
+    total_frames = np.arange(1, len(detection_status) + 1)
+    success_percentage = (cumulative_detections / total_frames) * 100
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(timestamps, success_percentage, 'b-', label='Success Rate')
+    plt.title('Pupil Detection Success Rate Over Time')
+    plt.xlabel('Time')
+    plt.ylabel('Success Percentage (%)')
+    plt.grid(True)
+    plt.legend()
+    
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45)
+    
+    # Set y-axis limits
+    plt.ylim(0, 100)
+    
+    # Add final success rate text
+    final_success_rate = success_percentage[-1]
+    plt.text(timestamps[-1], final_success_rate, f'Final: {final_success_rate:.1f}%', 
+             verticalalignment='bottom', horizontalalignment='right')
+    
+    # Adjust layout to prevent label cutoff
+    plt.tight_layout()
+    
+    # Save the plot
+    plt.savefig('pupil_detection_success_plot.png', dpi=300, bbox_inches='tight')
+    print(f"Plot saved as 'pupil_detection_success_plot.png'")
+    print(f"Final success rate: {final_success_rate:.1f}%")
+else:
+    print("No frames processed for plotting")
+
+# Cleanup
 cap.release()
 cv2.destroyAllWindows()
+plt.close()
