@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 
 # Read data from CSV
-csv_file = 'pupil_detection_log.csv'
+csv_file = 'pupil_detection_log_2.csv'
 timestamps = []
 detection_status = []
 
@@ -51,8 +51,8 @@ if timestamps:  # Only create plot if there were frames processed
     plt.tight_layout()
     
     # Save the plot
-    plt.savefig('pupil_detection_log.png', dpi=300, bbox_inches='tight')
-    print(f"Plot saved as pupil_detection_log.png'")
+    plt.savefig('pupil_detection_log_2.png', dpi=300, bbox_inches='tight')
+    print(f"Plot saved as pupil_detection_log_2.png'")
     print(f"Final success rate: {final_success_rate:.1f}%")
 else:
     print("No data found in CSV for plotting")

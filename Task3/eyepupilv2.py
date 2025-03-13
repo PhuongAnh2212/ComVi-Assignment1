@@ -5,7 +5,6 @@ import csv
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-# Initialize background subtractor
 bg_subtractor = cv2.createBackgroundSubtractorMOG2()
 
 cap = cv2.VideoCapture(0)
@@ -15,13 +14,12 @@ if not cap.isOpened():
     exit()
 
 def non_max_suppression_fast(image, kernel_size=3):
-    """Apply Non-Maximum Suppression (NMS) to enhance edges."""
     dilated = cv2.dilate(image, np.ones((kernel_size, kernel_size), np.uint8))
     nms_result = np.where(image == dilated, image, 0)
     return nms_result
 
 # Create or open CSV file with headers
-csv_file = 'pupil_detection_log.csv'
+csv_file = 'pupil_detection_log_2.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Timestamp', 'Detection Status', 'Number of Circles'])
@@ -29,18 +27,21 @@ with open(csv_file, 'w', newline='') as file:
 # Lists to store detection results
 timestamps = []
 detection_status = []  # 1 for detection, 0 for miss
+clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
 while True:
-    start_time = time.time()  # Start time for FPS calculation
+    start_time = time.time()
 
     ret, frame = cap.read()
     if not ret:
         print("Fail")
         break
 
-    # Convert to grayscale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.equalizeHist(gray)
+
+    gray = clahe.apply(gray)
+    smooth_gray = cv2.bilateralFilter(gray, 11, 100, 100) 
 
     fg_mask = bg_subtractor.apply(frame)
     fg_mask = cv2.GaussianBlur(fg_mask, (5, 5), 0)
@@ -48,14 +49,13 @@ while True:
     fg_colored = cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR)
 
     smooth_gray = cv2.bilateralFilter(gray, 9, 75, 75)
-    edges = cv2.Canny(smooth_gray, 80, 180)
-    edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+    edges = cv2.Canny(smooth_gray, 50, 150)  # Lowered thresholds for more edges
+    edges = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
 
     edges_nms = non_max_suppression_fast(edges)
     edges_nms_colored = cv2.cvtColor(edges_nms, cv2.COLOR_GRAY2BGR)
 
-    circles = cv2.HoughCircles(edges_nms, cv2.HOUGH_GRADIENT, dp=2.0, minDist=50, 
-                             param1=10, param2=60, minRadius=10, maxRadius=20)
+    circles = cv2.HoughCircles(edges_nms, cv2.HOUGH_GRADIENT, dp=2.0, minDist=50, param1=10, param2=60, minRadius=10, maxRadius=20)
 
     timestamp = datetime.now()
     timestamps.append(timestamp)
@@ -98,9 +98,7 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Calculate cumulative success percentage and plot
 if timestamps:  # Only create plot if there were frames processed
-    # Calculate running success percentage
     cumulative_detections = np.cumsum(detection_status)
     total_frames = np.arange(1, len(detection_status) + 1)
     success_percentage = (cumulative_detections / total_frames) * 100
@@ -112,24 +110,18 @@ if timestamps:  # Only create plot if there were frames processed
     plt.ylabel('Success Percentage (%)')
     plt.grid(True)
     plt.legend()
-    
-    # Rotate x-axis labels for better readability
     plt.xticks(rotation=45)
-    
-    # Set y-axis limits
     plt.ylim(0, 100)
     
-    # Add final success rate text
     final_success_rate = success_percentage[-1]
     plt.text(timestamps[-1], final_success_rate, f'Final: {final_success_rate:.1f}%', 
              verticalalignment='bottom', horizontalalignment='right')
     
-    # Adjust layout to prevent label cutoff
     plt.tight_layout()
     
     # Save the plot
-    plt.savefig('pupil_detection_success_plot.png', dpi=300, bbox_inches='tight')
-    print(f"Plot saved as 'pupil_detection_success_plot.png'")
+    plt.savefig('pupil_detection_success_plot_1.png', dpi=300, bbox_inches='tight')
+    print(f"Plot saved as 'pupil_detection_success_plot_1.png'")
     print(f"Final success rate: {final_success_rate:.1f}%")
 else:
     print("No frames processed for plotting")

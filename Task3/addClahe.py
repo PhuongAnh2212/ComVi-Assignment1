@@ -20,7 +20,7 @@ def non_max_suppression_fast(image, kernel_size=3):
     return nms_result
 
 # Create or open CSV file with headers
-csv_file = 'pupil_detection_log_v3.csv'
+csv_file = 'addClahe.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Timestamp', 'Detection Status', 'Number of Circles'])
@@ -63,12 +63,12 @@ while True:
     circles = cv2.HoughCircles(
         edges_nms, 
         cv2.HOUGH_GRADIENT, 
-        dp=1.5,           # Lowered for higher resolution
-        minDist=40,       # Adjusted based on typical eye distance
+        dp=2.0,           # Lowered for higher resolution
+        minDist=50,       # Adjusted based on typical eye distance
         param1=50,        # Lowered to match Canny upper threshold
         param2=30,        # Lowered for higher sensitivity
-        minRadius=8,      # Adjusted range for pupil size
-        maxRadius=25
+        minRadius=10,      # Adjusted range for pupil size
+        maxRadius=20
     )
 
     timestamp = datetime.now()
