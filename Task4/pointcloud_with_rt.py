@@ -67,7 +67,7 @@ def create_point_cloud(depth_path, color_path, depth_scale=1000.0):
 
                 # Step 4: Check if the projected point is within the color image bounds
                 if 0 <= u_c < width and 0 <= v_c < height:
-                    b, g, r = color_image[v_c, u_c] / 255.0  # Normalize to [0, 1]
+                    b, g, r = color_image[v_c, u_c] / 255.0  # Normalize to [0,1]
                     colors.append([r, g, b])
                     points.append(point_c)  # Use transformed coordinates
 

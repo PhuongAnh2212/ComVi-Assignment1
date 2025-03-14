@@ -18,8 +18,7 @@ def non_max_suppression_fast(image, kernel_size=3):
     nms_result = np.where(image == dilated, image, 0)
     return nms_result
 
-# Create or open CSV file with headers
-csv_file = 'pupil_detection_log_2.csv'
+csv_file = 'pupil_detection_log_4.csv'
 with open(csv_file, 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Timestamp', 'Detection Status', 'Number of Circles'])
@@ -39,22 +38,17 @@ while True:
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray = cv2.equalizeHist(gray)
-
     gray = clahe.apply(gray)
     smooth_gray = cv2.bilateralFilter(gray, 11, 100, 100) 
-
     fg_mask = bg_subtractor.apply(frame)
     fg_mask = cv2.GaussianBlur(fg_mask, (5, 5), 0)
     fg_mask = cv2.adaptiveThreshold(fg_mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
     fg_colored = cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR)
-
     smooth_gray = cv2.bilateralFilter(gray, 9, 75, 75)
     edges = cv2.Canny(smooth_gray, 50, 150)  # Lowered thresholds for more edges
     edges = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=1)
-
     edges_nms = non_max_suppression_fast(edges)
     edges_nms_colored = cv2.cvtColor(edges_nms, cv2.COLOR_GRAY2BGR)
-
     circles = cv2.HoughCircles(edges_nms, cv2.HOUGH_GRADIENT, dp=2.0, minDist=50, param1=10, param2=60, minRadius=10, maxRadius=20)
 
     timestamp = datetime.now()
@@ -120,8 +114,8 @@ if timestamps:  # Only create plot if there were frames processed
     plt.tight_layout()
     
     # Save the plot
-    plt.savefig('pupil_detection_success_plot_1.png', dpi=300, bbox_inches='tight')
-    print(f"Plot saved as 'pupil_detection_success_plot_1.png'")
+    plt.savefig('pupil_detection_success_plot_4.png', dpi=300, bbox_inches='tight')
+    print(f"Plot saved as 'pupil_detection_success_plot_4.png'")
     print(f"Final success rate: {final_success_rate:.1f}%")
 else:
     print("No frames processed for plotting")
